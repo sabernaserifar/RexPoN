@@ -1,0 +1,82 @@
+LAMMPS (16 Mar 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
+  using 1 OpenMP thread(s) per MPI task
+#----Variable section----#
+units                   real
+boundary                p p p
+special_bonds           lj/coul 1.0 1.0 1.0
+atom_style              pqeq
+bond_style              harmonic
+angle_style             harmonic
+read_data               data_lammps
+  orthogonal box = (0 0 0) to (24.8632 24.8632 24.8632)
+  2 by 2 by 4 MPI processor grid
+  reading atoms ...
+  1532 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  1020 bonds
+  reading angles ...
+  510 angles
+  2 = max # of 1-2 neighbors
+  2 = max # of special neighbors
+
+pair_style hybrid/overlay coul/pqeqgauss 0 12.0 rexpon NULL lgvdw yes coulomb_off yes checkqeq no
+pair_modify tail yes
+
+pair_coeff * * rexpon ffield.RexPoN Hw Ow Cl Na
+
+pair_coeff * * coul/pqeqgauss 0 0 0 0 0 0 0 0 # dummy
+# Xi Ji Rc polar Qc Rs K2 K4
+pair_coeff 1 1 coul/pqeqgauss 4.528000 17.984100 0.302857 1 1.000000 0.302857 2037.20060 0.000000 # Hw
+pair_coeff 2 2 coul/pqeqgauss 8.741000 13.364000 0.546120 1 1.000000 0.546120  814.04450 0.000000 # Ow
+#pair_coeff 3 3 coul/pqeqgauss 12.70000 10.500000 1.100000 1 1.000000 1.100000  552.32280 0.000000 # Cl Optimized for NaCl
+pair_coeff 3 3 coul/pqeqgauss  8.20651  9.738900 0.994000 1 1.000000 0.994000  152.32280 0.000000 # Cl PQEq1
+pair_coeff 4 4 coul/pqeqgauss  3.40000 11.000000 0.480000 1 1.000000 0.480000  513.77286 0.000000 # Na Optimized for NaCl
+#pair_coeff 4 4 coul/pqeqgauss  2.84300  4.592000 2.085000 1 1.000000 2.085000   13.77286 0.000000 # Na from PQEq0
+
+bond_coeff 1 0.0 1.0
+angle_coeff 1 0.0 109.47
+
+fix  pqeq all pqeq method 2 nevery 1 charge 0.0 tolerance 1.0e-6 damp 1.0
+
+########################################################
+compute                 pqeq all pair coul/pqeqgauss
+compute                 reax all pair rexpon
+variable eb             equal c_reax[1]
+variable ea             equal c_reax[2]
+variable elp    equal c_reax[3]
+variable emol   equal c_reax[4]
+variable ev             equal c_reax[5]
+variable epen   equal c_reax[6]
+variable ecoa   equal c_reax[7]
+variable ehb    equal c_reax[8]
+variable et             equal c_reax[9]
+variable eco    equal c_reax[10]
+variable ew             equal c_reax[11]
+variable ep             equal c_reax[12]
+variable efi    equal c_reax[13]
+variable eqeq   equal c_reax[14]
+variable epqeq  equal c_pqeq
+########################################################
+
+fix     constrain all shake 1.0e-4 100 0 b 1 a 1
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  510 = # of frozen angles
+print                          .
+.
+print =====================================
+=====================================
+print "NVT at 50K "
+NVT at 50K 
+print =====================================
+=====================================
+print            .
+.
+
+log             NVT50K.eng
