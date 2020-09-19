@@ -1,0 +1,44 @@
+# Morse + PQEq 
+units                real
+atom_style           pqeq
+boundary             p p p
+dielectric           1
+#special_bonds        lj 1e-08 1e-08 1.00000 coul 1 1 1
+
+
+pair_style           hybrid/overlay coul/pqeqgauss 0.00 12.5 morse 12.5  
+
+read_data            data_lammps
+
+#coul/pqeqgauss
+pair_coeff           * * coul/pqeqgauss 0.00000  0.00000 0.00000 0 0.00000 0.0000    0.00000 0 # Dummy
+pair_coeff           1 1 coul/pqeqgauss 2.81400  4.79200 2.44200 1 1.00000 2.4420    8.36432 0 # Ba from PQEq0 (Note: K=8.36432 might be too small and unstable)
+pair_coeff           2 2 coul/pqeqgauss 8.70340 17.27715 0.70600 1 1.00000 0.7060  596.16463 0 # F from PQEq1
+
+#morse D, alpha, r0
+# Provide all off-diagonal terms explicity 
+pair_coeff           * * morse 0.0 0.0 0.0
+pair_coeff           1 1 morse 100.0 2.0 1.5 # type1 type1 
+pair_coeff           2 2 morse 100.0 2.0 1.5 # type2 type2
+pair_coeff           1 2 morse 100.0 2.0 1.5 # type1 type2
+
+fix  pqeq all pqeq method 2 
+
+compute                 pqeq all pair coul/pqeqgauss
+variable epqeq  equal c_pqeq
+
+variable        sname index BaF
+
+
+print                          .
+print =====================================
+print "minimization "
+print =====================================
+print            .
+
+log             ${sname}.min.eng
+thermo          1
+dump            1 all custom 1 ${sname}.min.lammps id element type xu yu zu vx vy vz mol sx sy sz q
+thermo_style    custom step pe ecoul evdwl press pxx pyy pzz pxy pxz pyz 
+minimize        1.0e-4 1.0e-6 100 1000
+

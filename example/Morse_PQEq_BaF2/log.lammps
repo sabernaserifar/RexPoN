@@ -1,0 +1,54 @@
+LAMMPS (31 Mar 2017)
+# Morse + PQEq
+units                real
+atom_style           pqeq
+boundary             p p p
+dielectric           1
+#special_bonds        lj 1e-08 1e-08 1.00000 coul 1 1 1
+
+
+pair_style           hybrid/overlay coul/pqeqgauss 0.00 12.5 morse 12.5
+
+read_data            data_lammps
+  triclinic box = (0 0 0) to (4.443 3.8478 3.6277) with tilt (2.2215 2.2215 1.2826)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3 atoms
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+
+#coul/pqeqgauss
+pair_coeff           * * coul/pqeqgauss 0.00000  0.00000 0.0000 0 0.00000 0.0000 0.00000 0 #dummy
+pair_coeff           1 1 coul/pqeqgauss 2.81400  4.79200 2.44200 1 1.00000 2.44200    8.36432 0 # Ba from PQEq0 (Note: K=8.36432 might be too small and unstable)
+pair_coeff           2 2 coul/pqeqgauss 8.70340 17.27715 0.70600 1 1.00000 0.70600  596.16463 0 # F from PQEq1
+
+#morse D, alpha, r0
+# Provide all off-diagonal terms explicity
+pair_coeff           * * morse 0.0 0.0 0.0
+pair_coeff           1 1 morse 100.0 2.0 1.5 # type1 type1
+pair_coeff           2 2 morse 100.0 2.0 1.5 # type2 type2
+pair_coeff           1 2 morse 100.0 2.0 1.5 # type1 type2
+
+fix  pqeq all pqeq method 2
+
+compute                 pqeq all pair coul/pqeqgauss
+variable epqeq  equal c_pqeq
+
+variable        sname index BaF
+
+
+print                          .
+.
+print =====================================
+=====================================
+print "minimization "
+minimization 
+print =====================================
+=====================================
+print            .
+.
+
+log             ${sname}.min.eng
+log             BaF.min.eng
